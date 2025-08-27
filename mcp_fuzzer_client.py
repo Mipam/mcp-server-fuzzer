@@ -22,6 +22,8 @@ async def main():
     )
     args = parser.parse_args()
 
+    settings = {"url": args.url, "runs": args.runs}
+
     console = Console()
     table = Table(title="Fuzzing Summary")
     table.add_column("Tool", style="cyan", no_wrap=True)
@@ -30,7 +32,7 @@ async def main():
     table.add_column("Example Exception", style="red")
     table.add_column("Error", style="magenta")
 
-    async for summary in run_fuzzer(args.url, args.runs):
+    async for summary in run_fuzzer(settings):
         for tool, result in summary.items():
             error = result.get("error", "")
             total_runs = str(result.get("total_runs", ""))

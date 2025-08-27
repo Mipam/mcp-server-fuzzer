@@ -93,8 +93,9 @@ def get_tools_from_server(url: str) -> List[Dict[str, Any]]:
         return []
 
 
-async def run_fuzzer(url: str, runs: int):
+async def run_fuzzer(settings: dict):
     """Runs the fuzzer and yields summary results."""
+    url = settings.get("url")
     tools = get_tools_from_server(url)
     if not tools:
         logging.warning("Server returned an empty list of tools. Exiting.")
@@ -104,10 +105,10 @@ async def run_fuzzer(url: str, runs: int):
         logging.info(f"Fuzzing tool: {tool['name']}")
         summary = {}
         try:
-            results = await fuzz_tool(url, tool, runs)
+            results = await fuzz_tool(tool, settings)
             exceptions = [r for r in results if "exception" in r]
             summary[tool["name"]] = {
-                "total_runs": runs,
+                "total_runs": settings.get("runs", 10),
                 "exceptions": len(exceptions),
                 "example_exception": exceptions[0] if exceptions else None,
             }
@@ -116,8 +117,10 @@ async def run_fuzzer(url: str, runs: int):
         yield summary
 
 
-async def fuzz_tool(url: str, tool, runs: int = 10):
+async def fuzz_tool(tool: dict, settings: dict):
     """Fuzz a tool by calling it with random/edge-case arguments."""
+    url = settings.get("url")
+    runs = settings.get("runs", 10)
     results = []
     schema = tool.get("inputSchema", {})
     strategy = make_fuzz_strategy_from_jsonschema(schema)
