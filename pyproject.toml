@@ -6,8 +6,10 @@ requires-python = ">=3.8"
 dependencies = [
     "httpx",
     "hypothesis",
-    "rich"
+    "rich",
+    "PyQt6"
 ]
 
 [project.scripts]
-mcp-fuzzer-client = "mcp_fuzzer_client:main" 
+mcp-fuzzer-client = "mcp_fuzzer_client:main"
+mcp-fuzzer-gui = "mcp_fuzzer.gui.main_window:main"

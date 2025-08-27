@@ -1,9 +1,12 @@
 import json
 import logging
+import traceback
 import uuid
 from typing import Any, Dict, List, Optional
 
 import httpx
+
+from mcp_fuzzer.strategies import make_fuzz_strategy_from_jsonschema
 
 
 def jsonrpc_request(
@@ -88,3 +91,74 @@ def get_tools_from_server(url: str) -> List[Dict[str, Any]]:
         return []
         logging.warning("Error fetching tools list: %s", str(e))
         return []
+
+
+async def run_fuzzer(settings: dict):
+    """Runs the fuzzer and yields summary results."""
+    url = settings.get("url")
+    tools = get_tools_from_server(url)
+    if not tools:
+        logging.warning("Server returned an empty list of tools. Exiting.")
+        return
+
+    for tool in tools:
+        logging.info(f"Fuzzing tool: {tool['name']}")
+        summary = {}
+        try:
+            results = await fuzz_tool(tool, settings)
+            exceptions = [r for r in results if "exception" in r]
+            summary[tool["name"]] = {
+                "total_runs": settings.get("runs", 10),
+                "exceptions": len(exceptions),
+                "example_exception": exceptions[0] if exceptions else None,
+            }
+        except Exception as e:
+            summary[tool["name"]] = {"error": str(e)}
+        yield summary
+
+
+async def fuzz_tool(tool: dict, settings: dict):
+    """Fuzz a tool by calling it with random/edge-case arguments."""
+    url = settings.get("url")
+    runs = settings.get("runs", 10)
+    results = []
+    schema = tool.get("inputSchema", {})
+    strategy = make_fuzz_strategy_from_jsonschema(schema)
+    headers = {
+        "Accept": "application/json, text/event-stream",
+        "Content-Type": "application/json",
+    }
+    for _ in range(runs):
+        args = strategy.example()
+        try:
+            params = {"name": tool["name"], "arguments": args}
+            payload = {
+                "jsonrpc": "2.0",
+                "id": str(uuid.uuid4()),
+                "method": "tools/call",
+                "params": params,
+            }
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(url, json=payload, headers=headers)
+                try:
+                    result = resp.json()
+                except Exception:
+                    # SSE fallback
+                    for line in resp.text.splitlines():
+                        if line.startswith("data:"):
+                            import json
+
+                            data_json = line[len("data:") :].strip()
+                            result = json.loads(data_json)
+                            break
+                    else:
+                        logging.warning(
+                            "Server returned a non-JSON (or SSE) response for tool call. Appending dummy result."
+                        )
+                        result = {"error": "Non-JSON response"}
+            results.append({"args": args, "result": result})
+        except Exception as e:
+            results.append(
+                {"args": args, "exception": str(e), "traceback": traceback.format_exc()}
+            )
+    return results
