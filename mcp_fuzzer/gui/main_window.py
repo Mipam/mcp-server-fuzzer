@@ -158,7 +158,7 @@ class MainWindow(QMainWindow):
         self.results_table = QTableWidget()
         self.results_table.setColumnCount(5)
         self.results_table.setHorizontalHeaderLabels(
-            ["Tool", "Total Runs", "Exceptions", "Example Exception", "Error"]
+            ["Target", "Total Runs", "Exceptions", "Example Exception", "Error"]
         )
         layout.addWidget(self.results_table)
 
@@ -223,7 +223,7 @@ class MainWindow(QMainWindow):
         self.thread.finished.connect(lambda: self.run_button.setEnabled(True))
 
     def update_table(self, summary):
-        for tool, result in summary.items():
+        for target, result in summary.items():
             row_position = self.results_table.rowCount()
             self.results_table.insertRow(row_position)
 
@@ -235,7 +235,7 @@ class MainWindow(QMainWindow):
                 ex = result["example_exception"]
                 example_exception = ex.get("exception", "")
 
-            self.results_table.setItem(row_position, 0, QTableWidgetItem(tool))
+            self.results_table.setItem(row_position, 0, QTableWidgetItem(target))
             self.results_table.setItem(row_position, 1, QTableWidgetItem(total_runs))
             self.results_table.setItem(row_position, 2, QTableWidgetItem(exceptions))
             self.results_table.setItem(
