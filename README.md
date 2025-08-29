@@ -1,40 +1,51 @@
 # MCP Fuzzer
 
-A CLI tool for fuzzing MCP server tools using JSON-RPC 2.0, with pretty output using [rich](https://github.com/Textualize/rich).
+A tool for fuzzing MCP servers, with both a CLI and a GUI. It supports multiple transport protocols, fuzzing phases, and has a built-in safety system.
 
 ## Features
-- Discovers available tools from an MCP server endpoint
-- Fuzzes each tool with random/edge-case arguments using Hypothesis
-- Reports results and exceptions in a rich terminal table
+- **GUI and CLI Interfaces**: Run the fuzzer from a modern graphical user interface or from the command line.
+- **Multi-Protocol Support**: Fuzz servers over HTTP, SSE, Stdio, and StreamableHTTP.
+- **Comprehensive Fuzzing**: Perform both tool-level and protocol-level fuzzing.
+- **Two-Phase Fuzzing**: Use "realistic" or "aggressive" fuzzing strategies.
+- **Safety System**: Protect your system with features like command blocking and filesystem sandboxing.
+- **Reporting**: Generate JSON and text reports of fuzzing sessions.
+- **Authentication**: Connect to servers that require API Key, Basic, or OAuth authentication.
 
 ## Installation
 
-Install dependencies using [uv](https://github.com/astral-sh/uv):
+Install with pip:
 
 ```bash
-uv pip install -e .
+pip install -e .
 ```
 
 ## Usage
 
-You can run the fuzzer as a CLI tool after install:
+### GUI
 
+To launch the graphical user interface, run:
+
+```bash
+mcp-fuzzer-gui
+```
+
+The GUI provides access to all the fuzzer's options in a user-friendly interface.
+
+### Command-Line Interface
+
+You can run the fuzzer from the command line with a wide range of options.
+
+**Basic Usage:**
 ```bash
 mcp-fuzzer-client --url http://localhost:8000/mcp/ --runs 10
 ```
 
-Or directly with Python:
-
-```bash
-python -m mcp_fuzzer_client --url http://localhost:8000/mcp/ --runs 10
-```
-
-- `--url`: URL of the MCP server's JSON-RPC endpoint
-- `--runs`: Number of fuzzing runs per tool (default: 10)
+**Full Usage:**
+For a full list of all the command-line options, see the [documentation](https://agent-hellboy.github.io/mcp-server-fuzzer/reference/).
 
 ## Output
 
-Results are shown in a colorized table, including the number of exceptions and an example error if any.
+Results are shown in a colorized table in the CLI, or in a results table in the GUI. Reports can also be generated in JSON and text formats.
 
 ---
 

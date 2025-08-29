@@ -1,0 +1,4 @@
+Target: hello_stdio
+Total Runs: 5
+Exceptions: 0
+Example Exception: None

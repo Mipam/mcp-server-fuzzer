@@ -1,0 +1,8 @@
+[
+    {
+        "target": "hello_stdio",
+        "total_runs": 5,
+        "exceptions": 0,
+        "example_exception": null
+    }
+]

@@ -1,12 +1,15 @@
 from typing import Any, Dict
-
 from hypothesis import strategies as st
 
+Strategy = st.SearchStrategy
 
-def make_fuzz_strategy_from_jsonschema(schema: Dict[str, Any], phase: str = "aggressive"):
+
+def make_fuzz_strategy_from_jsonschema(
+    schema: Dict[str, Any], phase: str = "aggressive"
+) -> Strategy[Dict[str, Any]]:
     """Create a Hypothesis strategy for the tool's arguments based on JSON Schema."""
     props = schema.get("properties", {})
-    strat_dict = {}
+    strat_dict: Dict[str, Strategy[Any]] = {}
     for arg, prop in props.items():
         typ = prop.get("type", "string")
         if phase == "realistic":
@@ -41,7 +44,7 @@ def make_fuzz_strategy_from_jsonschema(schema: Dict[str, Any], phase: str = "agg
     return st.fixed_dictionaries(strat_dict)
 
 
-def make_protocol_fuzz_strategy(phase: str = "aggressive"):
+def make_protocol_fuzz_strategy(phase: str = "aggressive") -> Strategy[Dict[str, Any]]:
     """Create a Hypothesis strategy for fuzzing the JSON-RPC protocol itself."""
     if phase == "realistic":
         return make_realistic_protocol_fuzz_strategy()
@@ -49,7 +52,7 @@ def make_protocol_fuzz_strategy(phase: str = "aggressive"):
         return make_aggressive_protocol_fuzz_strategy()
 
 
-def make_realistic_protocol_fuzz_strategy():
+def make_realistic_protocol_fuzz_strategy() -> Strategy[Dict[str, Any]]:
     """Create a Hypothesis strategy for generating valid JSON-RPC requests."""
     json_rpc_versions = st.just("2.0")
     methods = st.text(min_size=1, max_size=20)
@@ -61,7 +64,7 @@ def make_realistic_protocol_fuzz_strategy():
     )
 
 
-def make_aggressive_protocol_fuzz_strategy():
+def make_aggressive_protocol_fuzz_strategy() -> Strategy[Dict[str, Any]]:
     """Create a Hypothesis strategy for generating malformed JSON-RPC requests."""
     json_rpc_versions = st.just("2.0")
     methods = st.text(min_size=1, max_size=20)

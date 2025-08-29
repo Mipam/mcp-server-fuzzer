@@ -21,18 +21,28 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
 )
 
+from typing import Any, Dict
 from mcp_fuzzer.client import run_fuzzer
 
 
 class FuzzerWorker(QObject):
+    """A worker thread for running the fuzzer in the background."""
+
     finished = pyqtSignal()
     progress = pyqtSignal(dict)
 
-    def __init__(self, settings):
+    def __init__(self, settings: Dict[str, Any]):
+        """
+        Initialize the FuzzerWorker.
+
+        Args:
+            settings: A dictionary of fuzzer settings.
+        """
         super().__init__()
         self.settings = settings
 
-    def run(self):
+    def run(self) -> None:
+        """Run the fuzzer."""
         async def main():
             async for summary in run_fuzzer(self.settings):
                 self.progress.emit(summary)
@@ -42,7 +52,10 @@ class FuzzerWorker(QObject):
 
 
 class MainWindow(QMainWindow):
+    """The main window of the MCP Fuzzer GUI."""
+
     def __init__(self):
+        """Initialize the main window."""
         super().__init__()
         self.setWindowTitle("MCP Fuzzer")
         self.setGeometry(100, 100, 800, 600)
@@ -165,18 +178,21 @@ class MainWindow(QMainWindow):
         # Status bar
         self.statusBar().showMessage("Ready")
 
-    def select_fs_root(self):
+    def select_fs_root(self) -> None:
+        """Open a dialog to select the filesystem root directory."""
         directory = QFileDialog.getExistingDirectory(self, "Select Filesystem Root")
         if directory:
             self.fs_root_input.setText(directory)
 
-    def select_output_dir(self):
+    def select_output_dir(self) -> None:
+        """Open a dialog to select the output directory."""
         directory = QFileDialog.getExistingDirectory(self, "Select Output Directory")
         if directory:
             self.output_dir_input.setText(directory)
 
-    def start_fuzzer(self):
-        settings = {
+    def start_fuzzer(self) -> None:
+        """Start the fuzzer in a new thread."""
+        settings: Dict[str, Any] = {
             "url": self.url_input.text(),
             "protocol": self.protocol_input.currentText(),
             "mode": self.mode_input.currentText(),
@@ -222,7 +238,13 @@ class MainWindow(QMainWindow):
         )
         self.thread.finished.connect(lambda: self.run_button.setEnabled(True))
 
-    def update_table(self, summary):
+    def update_table(self, summary: Dict[str, Any]) -> None:
+        """
+        Update the results table with a new summary.
+
+        Args:
+            summary: A dictionary containing the summary of a fuzzer run.
+        """
         for target, result in summary.items():
             row_position = self.results_table.rowCount()
             self.results_table.insertRow(row_position)
@@ -244,7 +266,8 @@ class MainWindow(QMainWindow):
             self.results_table.setItem(row_position, 4, QTableWidgetItem(error))
 
 
-def main():
+def main() -> None:
+    """The main entry point for the GUI application."""
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
